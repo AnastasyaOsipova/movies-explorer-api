@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { celebrate, Joi, errors } = require('celebrate');
+const cors = require('cors');
 const userRoutes = require('./routes/users');
 const filmRoutes = require('./routes/films');
 const {
@@ -22,6 +23,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://localhost:27017/bitfilmsdb');
+
+app.use(cors({
+  Origin: 'https://api.movies-explorer.molch.nomoredomains.icu/',
+  credentials: true,
+}));
 
 app.use(requestLogger);
 
