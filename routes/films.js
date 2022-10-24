@@ -17,14 +17,14 @@ filmsRoutes.post('/', celebrate({
     trailerLink: Joi.string().required().regex(authRegex),
     thumbnail: Joi.string().required().regex(authRegex),
     movieId: Joi.number().required(),
-    nameEng: Joi.string().required(),
-    nameRu: Joi.string().required(),
+    nameEN: Joi.string().required(),
+    nameRU: Joi.string().required(),
   }),
 }), createMovie);
 
 filmsRoutes.delete('/_id', celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().alphanum().hex().length(24),
+    _id: Joi.string().required().hex().length(24),
   }),
 }), deleteMovie);
 

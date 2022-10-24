@@ -50,11 +50,11 @@ const filmSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  nameRu: {
+  nameRU: {
     type: String,
     required: true,
   },
-  nameEng: {
+  nameEN: {
     type: String,
     required: true,
   },

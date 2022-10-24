@@ -20,8 +20,8 @@ module.exports.createMovie = (req, res, next) => {
     trailerLink,
     thumbnail,
     movieId,
-    nameEng,
-    nameRu,
+    nameEN,
+    nameRU,
   } = req.body;
   const owner = req.user._id;
   Film.create({
@@ -34,8 +34,8 @@ module.exports.createMovie = (req, res, next) => {
     trailerLink,
     thumbnail,
     movieId,
-    nameEng,
-    nameRu,
+    nameEN,
+    nameRU,
     owner,
   })
     .then((film) => res.send(film))
@@ -49,7 +49,7 @@ module.exports.createMovie = (req, res, next) => {
 
 module.exports.deleteMovie = (req, res, next) => {
   Film.findById(req.params._id)
-    .orFail(() => (next(new NotFoundError('Фильм не найден'))))
+    .orFail(() => { throw new NotFoundError('Фильм не найден'); })
     .then((film) => {
       if (film.owner._id.toString === req.user._id.toString) {
         return film.remove()

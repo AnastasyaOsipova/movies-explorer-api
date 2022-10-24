@@ -10,7 +10,7 @@ const ConflictError = require('../errors/conflict-err');
 module.exports.getUser = (req, res, next) => {
   const userId = req.user._id;
   User.findById(userId)
-    .orFail(() => (next(new NotFoundError('Пользователь не найден'))))
+    .orFail(() => { throw new NotFoundError('Пользователь не найден'); })
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -26,11 +26,14 @@ module.exports.updateUser = (req, res, next) => {
     new: true,
     runValidators: true,
   })
-    .orFail(() => (next(new NotFoundError('Пользователь не найден'))))
+    .orFail(() => { throw new NotFoundError('Пользователь не найден'); })
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new ValidationError('Переданы некорректные данные'));
+      }
+      if (err.code === 11000) {
+        return next(new ConflictError('Пользователь с таким email уже существует'));
       }
       return next(err);
     });
@@ -65,16 +68,14 @@ module.exports.logIn = (req, res, next) => {
       if (!user) {
         return next(new UnauthorizedError('Неправильные почта или пароль'));
       }
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
             return next(new UnauthorizedError('Неправильные почта или пароль'));
           }
-          return res.status(200).send(token);
-        })
-        .catch(() => { next(new UnauthorizedError('Введите почту и пароль')); })
-        .catch(next);
+          const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
+          return res.status(200).send({ token });
+        });
     })
     .catch(next);
 };

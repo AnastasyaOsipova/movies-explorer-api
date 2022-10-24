@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const helmet = require('helmet');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { celebrate, Joi, errors } = require('celebrate');
@@ -11,9 +12,9 @@ const {
   logIn,
 } = require('./controllers/users');
 const auth = require('./middlewares/auth');
-const { authRegex } = require('./utils/constants');
 const NotFoundError = require('./errors/not-found-err');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+const { DB_URL } = require('./config');
 
 const { PORT = 3000 } = process.env;
 
@@ -22,7 +23,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-mongoose.connect('mongodb://localhost:27017/bitfilmsdb');
+mongoose.connect(DB_URL);
 
 app.use(cors({
   Origin: 'https://api.movies-explorer.molch.nomoredomains.icu/',
@@ -30,6 +31,8 @@ app.use(cors({
 }));
 
 app.use(requestLogger);
+
+app.use(helmet());
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
@@ -42,9 +45,7 @@ app.post('/signup', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
     password: Joi.string().required(),
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string().regex(authRegex),
+    name: Joi.string().required().min(2).max(30),
   }),
 }), register);
 
@@ -52,13 +53,9 @@ app.use('/users', auth, userRoutes);
 
 app.use('/movies', auth, filmRoutes);
 
-app.use(errorLogger);
-
-app.use(errors());
-
 app.use((req, res, next) => {
   next(new NotFoundError('Страница не найдена'));
-});
+}, auth);
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
@@ -72,6 +69,10 @@ app.use((err, req, res, next) => {
     });
   next();
 });
+
+app.use(errorLogger);
+
+app.use(errors());
 
 app.listen(PORT, () => {
   console.log(`example app listening at http://localhost:${PORT}`);
