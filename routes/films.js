@@ -22,7 +22,7 @@ filmsRoutes.post('/', celebrate({
   }),
 }), createMovie);
 
-filmsRoutes.delete('/_id', celebrate({
+filmsRoutes.delete('/:_id', celebrate({
   params: Joi.object().keys({
     _id: Joi.string().required().hex().length(24),
   }),
