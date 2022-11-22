@@ -27,7 +27,10 @@ module.exports.updateUser = (req, res, next) => {
     runValidators: true,
   })
     .orFail(() => { throw new NotFoundError('Пользователь не найден'); })
-    .then((user) => res.send(user))
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
+      return res.status(200).send({ token });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new ValidationError('Переданы некорректные данные'));
@@ -45,11 +48,8 @@ module.exports.register = (req, res, next) => {
     .then((hash) => User.create({
       name, email, password: hash,
     }))
-    .then((user) => res.send({
-      _id: user._id,
-      email: user.email,
-      name: user.name,
-    }))
+    .then((user) => res.send(user))
+    .then
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new ValidationError('Переданы некорректные данные'));
