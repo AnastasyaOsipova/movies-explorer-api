@@ -46,7 +46,6 @@ module.exports.register = (req, res, next) => {
       name, email, password: hash,
     }))
     .then((user) => res.send(user))
-    .then
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new ValidationError('Переданы некорректные данные'));
